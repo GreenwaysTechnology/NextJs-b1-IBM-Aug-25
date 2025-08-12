@@ -215,7 +215,7 @@ Next js is a framework that helps to build web apps of all types
 Using Next you can build 
      Pure server side apps with database access, other external API access.....
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-				               Next js UI layer - Next JS APP architecture
+				              				 Next js UI layer - Next JS APP architecture
 ...........................................................................................................................................................................................................................................
 Next js uses "react core features" to build UI layer...
 
@@ -481,34 +481,6 @@ How to declare components?
  2.every in built component (page,layout...)  must be exported using "export default" only.
  3.Every Next application must have "root layout" src/app/layout.js
  4.Every Next application may have  "home/landing page" src/app/page.js
- 5.Component Name can be any thing like HomePage, Home ,MyHomePage, MyLayout etc..
-
-Page Component: - page.js
-  It is place holder component which displays ui.
-
-Layout Component:
-  It is container component which holds Page Component
-
-
-   layout - parent
-	  ------------------------------
-          |                             |
-                      Page -child |
-          |                             |
-          |                             |
-          |                             |
-           -----------------------------
-
-<Layout>
-    <Page/>
-</Layout>
-
-How to declare components?
-
- 1.every component must be "functional component" - No Class Component.
- 2.every in built component (page,layout...)  must be exported using "export default" only.
- 3.Every Next application must have "root layout" src/app/layout.js
- 4.Every Next application may have  "home/landing page" src/app/page.js
  5.Component Name can be any thing like HomePage,Home,MyHomePage,MyLayout etc..
 
 How to create Page and layout Components ?
@@ -631,3 +603,93 @@ Hands on :
 
 You create a route for course, training ,instructor
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											Component Hierachy
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+In Next.js components are organized  as hierachical relationship like parent and child
+
+src/app/page.js,layout.js,template.js,loading.js,error.js,not-found.js
+
+<Layout>
+	 <Template>
+			<ErrorBoundary fallback={<Error/>}>
+				<Suspense fallback={</Loading/>
+					<ErrorBoundary fallback={<Not-Found/>}>
+							<Page/>
+					</ErrorBoundary>
+				</Suspense>
+			</ErrorBoundary>
+	  <Template>
+</Layout>
+	
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Nested Layout
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Nested layout is optional only, if you want nested layout, which is shared among nested pages.
+
+layout.js - File Convention for nested layout also.
+
+<Layout>
+	<Layout> --nested layout
+		<Page/>
+	</Layout>
+</Layout>
+
+eg:
+src/app/customer/layout.js
+
+export default function CustomerLayout(props) {
+
+    return <div id="customerlayout">
+        {/* Customer Page is inserted here */}
+        {props.children} 
+    </div>
+
+}
+
+Deep Nested Layouts:
+
+src/app/products/layout.js
+export default function ProductLayout({ children }) {
+    return <div id="productLayout">
+        {children}
+    </div>
+}
+src/app/products/reviews/layout.js
+export default function ReviewsLayout({ children }) {
+    return <div id="reviewsLayout">
+        {children}
+    </div>
+}
+src/app/products/reviews/comments/layout.js
+
+export default function CommentsLayout({ children }) {
+    return <div id="commentsLayout">
+        {children}
+    </div>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
