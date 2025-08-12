@@ -668,28 +668,433 @@ export default function CommentsLayout({ children }) {
         {children}
     </div>
 }
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Component Driven Archiecture
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Layout is container Component, Page Component is mapped against route segment, which displays UI.
+
+Can Page Hold other Components?
+
+Yes
+    Layout
+          | 
+       Page
+            |
+ UserProfile
+     |
+    UserList
+      |
+      UserItem
+
+Project:
+√ What is your project named? ... components-app
+√ Would you like to use TypeScript? ... No / Yes
+√ Would you like to use ESLint? ... No / Yes
+√ Would you like to use Tailwind CSS? ... No / Yes
+√ Would you like your code inside a `src/` directory? ... No / Yes
+√ Would you like to use App Router? (recommended) ... No / Yes
+√ Would you like to use Turbopack for `next dev`? ... No / Yes
+√ Would you like to customize the import alias (`@/*` by default)? ... No / Yes
+√ What import alias would you like configured? ... @/*
+
+Without Components:
+
+src/app/todos/layout.js
+export default function TodosLayout({children}){
+    return <div id="todosLayout">
+         {children}
+    </div>
+}
+src/app/todos/page.js
+import TODOS from "../mock-data/todos"
+export default function TodosPage() {
+    return <>
+        <h1>Todos Page</h1>
+        <ul>
+            {TODOS.map(todo => {
+                return <li key={todo.id}>
+                    <span>{todo.title} {todo.status ? "Completed" : "In Progress"}</span>
+                </li>
+            })}
+        </ul>
+    </>
+}
+
+Here we have dumpted todos ui inside page.js , which is not recommended, you have to separate component.
+
+src/app/todos/components/TodoList.jsx
+import TODOS from "../../mock-data/todos"
+
+export function TodoList() {
+    return <ul>
+        {TODOS.map(todo => {
+            return <li key={todo.id}>
+                <span>{todo.title} {todo.status ? "Completed" : "In Progress"}</span>
+            </li>
+        })}
+    </ul>
+}
+src/app/todos/page.js
+import { TodoList } from "./components/todosList";
+
+export default function TodosPage() {
+    return <>
+        <TodoList />
+    </>
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										import aliases
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Import aliases in Next.js , in javascript or typescript projects generally provide a way to create shorter,more readable and less error-prone import paths instead of using long relative paths
+
+eg:
+ ../../
+../../../components/Mycomponent
+
+import TODOS from "../../mock-data/todos"
+
+Using Import aliases Syntax:
+
+@/app/yourFolder/YoursubFolder/fileName
+
+import TODOS from "@/app/mock-data/todos"
+
+
+eg:
+
+import TODOS from "@/app/mock-data/todos"
+export function TodoList() {
+    return <ul>
+        {TODOS.map(todo => {
+            return <li key={todo.id}>
+                <span>{todo.title} {todo.status ? "Completed" : "In Progress"}</span>
+            </li>
+        })}
+    </ul>
+}
+
+// import { TodoList } from "./components/todosList";
+import { TodoList } from "@/app/todos/components/todosList"
+export default function TodosPage() {
+    return <>
+        <TodoList />
+    </>
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											 Components Types
+											  (Rendering Types)
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+Rendering is nothing but page preparation (html creation).
+
+How to create html and where to create Html?
+
+Where:
+     rendering can take place in the server or on the client.
+
+When:
+  At Server side:
+    It can happen either ahead of time at build time.
+    or on every Request at runtime.
+
+
+With next js , two types of rendering methods are available.
+
+1.Server-side rendering
+   1.0. Request time
+   1.1. Static site Generation - build time
+   1.2. ISR - Incremental Static rendering - first Build time and later runtime.
+
+2.Client-side Rendering
+   Preparing portion of page at client side , which is similar to SPA Apps. -  It is just like JQuery with Php/Java/DotNet
+
+Component types:
+ Based on Rendering, we can classify the component into two category.
+
+1.Server Component
+   Server components are rendered at server side
+2.Client components
+   Clients components are rendered at client side
+
+				By default all components are "Server Rendered Components"
+
+   page,layouts,templates,notfound,loading,default all are server components only
+
+Even When create custom components
+
+export default function Greet(props) {
+     return <>
+        <h1>{props.message}</h1>
+     </>
+}
+.....................................................................................................................................................................................................................................................
+										 	Client Component
+......................................................................................................................................................................................................................................................
+Component which may have logic to interact with user like button clicks,typing,animations,data fetch at client side,hooks, any dom manipulation......
+
+The components can be co-located..
+
+	Client components allow us to write interactive UI that is prendered on the server and can use client javascript to run in the browser.
+
+Advantages of client Rendering:
+
+1.Interactivity
+   Client components uses "state,effects,event listener" , meaning they can provide immediate feedback to the user and update the UI.
+
+2.Browser APIs:
+     Client components have access the browser apis like Storage,geo location....
+
+
+src/app/counter/components/Counter.jsx
+import { useState } from "react"
+
+export function Counter() {
+    const [value, setValue] = useState(0)
+
+    return <>
+        <h1>Value : {value}</h1>
+    </>
+}
+
+src/app/counter/page.js
+import { Counter } from "@/app/counter/compoents/Counter";
+
+export default function CounterPage(){
+    return <div>
+        <h1>Counter</h1>
+        <Counter/>
+    </div>
+}
+After running:
+
+./src/app/counter/compoents/Counter.jsx (1:10)
+
+Ecmascript file had an error
+> 1 | import { useState } from "react"
+    |          ^^^^^^^^
+  2 |
+  3 | export function Counter() {
+  4 |     const [value, setValue] = useState(0)
+
+You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+Import trace:
+  ./src/app/counter/compoents/Counter.jsx
+  ./src/app/counter/page.js
+
+
+How to fix this?
+
+Convert the component into client components, so that next will bundle this component and send to the browser, so browser starts hyderating this code.
+
+How to tell to the next server?
+
+//directive is nothing but instructions to the compiler
+
+"use client" // directive
+
+import { useState } from "react"
+
+export function Counter() {
+    const [value, setValue] = useState(0)
+
+    return <>
+        <h1>Value : {value}</h1>
+        <button onClick={() => {
+            setValue(value + 1)
+            console.log(value)
+        }}>+</button>
+    </>
+}
+
+How to know the client component?
+
+if component has 
+
+1.useState hook
+2.Any listener
+3.useEffect hook
+4.Browser apis
+5.state declaration
+
+Task:
+  CURD operation using Array:
+
+
+'use client'
+
+import { useState } from "react"
+
+export default function Post() {
+    const [posts, setPosts] = useState([{
+        id: 1, title: 'React', body: 'This is React Post'
+    },
+    {
+        id: 2, title: 'Next.js', body: 'This is Next.js Post'
+    }
+    ])
+    const [isEditing, setIsEditing] = useState(false)
+
+    const [form, setForm] = useState({ title: '', body: '', id: null })
+
+    const handleSubmit = (evt) => {
+        //dont reload the form by submitting form automatically, we have to prevent 
+        evt.preventDefault()
+        //here you have handle either add or update logic
+        isEditing ? updatePost() : addPost()
+    }
+    const addPost = () => {
+        //new Post
+        const newPost = { id: Date.now(), title: form.title, body: form.body }
+        console.log(newPost)
+        //add new Post into an Array
+        setPosts([...posts, newPost])
+        setForm({ title: '', body: '', id: null })
+    }
+    const updatePost = () => {
+        console.log('update Post')
+        setPosts(posts.map(post => (post.id === form.id ? form : post)))
+        setForm({ title: '', body: '', id: null })
+        setIsEditing(false)
+    }
+
+    //handle Edit
+    const handleEdit = (post) => {
+        console.log(post)
+        setIsEditing(true)
+        setForm({ title: post.title, body: post.body, id: post.id })
+
+    }
+    const handleDelete = (id) => {
+        console.log('Delete')
+        setPosts(posts.filter(post => post.id !== id))
+    }
+    return <div>
+        {/* Form : To add new Post or Edit existing Post */}
+        <form onSubmit={handleSubmit}>
+            <div>
+                <input type="text" onChange={e => {
+                    setForm({ ...form, title: e.target.value })
+                }} placeholder="Title" value={form.title} />
+            </div>
+            <div>
+                <textarea onChange={e => {
+                    setForm({ ...form, body: e.target.value })
+                }} placeholder="Body" value={form.body} />
+            </div>
+            <div>
+                <button type="submit">{isEditing ? "Update" : "Add"} Post</button>
+            </div>
+        </form>
+
+        {/* List of Posts */}
+        <ul>
+            {posts.map(post => {
+                return <li key={post.id}>
+                    <h2>{post.title}</h2>
+                    <p>{post.body}</p>
+                    <button onClick={() => {
+                        handleEdit(post)
+                    }}>Edit</button>
+                    <button onClick={() => {
+                        handleDelete(post.id)
+                    }}>Delete</button>
+                </li>
+            })}
+        </ul>
+    </div>
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\										Patterns for client and server components
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+1.Server component uses another Server Component
+   inside layout.js we use page.js
+   inside page.js we use UserList.js
+
+2.Server component uses client component
+
+3.Client component uses another server component
+
+4.Client component uses another client component
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								2.Server component uses client component
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Server:
+
+src/app/reviews/page.js
+import { Like } from './components/like'
+
+export default function ReviewPage() {
+    return <div>
+        <h1>Review Page</h1>
+        <Like />
+    </div>
+}
+
+Client:
+src/app/reviews/components/likes.jsx
+
+'use client'
+import { useState } from "react"
+export const Like = props => {
+    const [value, setValue] = useState(0)
+
+    const onLike = () => {
+        setValue(value + 1)
+    }
+    return <>
+        <h1>Like {value}</h1>
+        <button onClick={onLike}>Like</button>
+    </>
+}
+
+Note:
+ if server uses client, the client component must be marked with "use client" directive
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+							Client component uses another server component
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 
 
+src/app/clientserverpattern/components/server.jsx
+
+export default function Server(){
+    return <div>
+        <h1>Server Component</h1>
+    </div>
+}
+
+src/app/clientserverpattern/components/client.jsx
+
+'use client'
+
+import Server from "@/app/clientserverpattern/components/server"
+
+export default function Client() {
+    return <div>
+        <h1>Client Component</h1>
+        <Server />
+    </div>
+}
+
+			 if client uses another server component,"server component automatically becomes client component"
+
+						 	When we use this pattern we loose server rendering
+
+In the above code Server component runs in the client only.
 
 
+		What if "client uses server component" but at the same time, i dont want to loose server rendering feature?
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Solution:
+     Pass Server Component as Prop to Child  component.
 
 
