@@ -5,7 +5,8 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <nav>
-          <Link href={{ pathname: "/todos" }}>Todos</Link>
+          <Link href={{ pathname: "/todos" }}>Todos</Link> | 
+          <Link href={{pathname:"/posts"}}>Posts</Link>
         </nav>
         {children}
       </body>
