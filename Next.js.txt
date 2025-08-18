@@ -1746,9 +1746,6 @@ const styles= {
 								  How to use Tailwind framework
 
 
-
-
-
 export default function Home() {
   return <div className="m-20">
     <p className="text-xs">This is tailwind</p>
@@ -1990,7 +1987,7 @@ https://fakestoreapi.com/products
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 						   		Data Fetching
-..................................................................................................................................................................................................................................................................
+...........................................................................................................................................................................................................................................
 
 Where data fetching can happen?
 
@@ -2219,7 +2216,351 @@ export default function PostPage(){
 Task:CURD operations using apis
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
+..................................................................................................................................................................................................................................................................
+										 Building REST APIs in Next.js  
+................................................................................................................................................................................................................................................................
+
+REST api can be used to write rest api which may talk to databases or external rest api or Graphql api or microservices
+
+Route Handler:
+  Route handlers are used to create api in next
+
+File Name:
+ route.js
 
 
+src/app/todos/
+   page.js
+   layout.js
+   route.js - it is not recommended to write like this
 
+Recommended Folder Structure:
+.....................................................
+src/app/api/todos
+    route.js
+    	[id]/
+    	  route.js
+
+url pattern
+ /api/todos 
+ /api/posts
+ /api/products
+ /api/products/1
+
+Syntax:
+
+export async function HTTPVerb(request){
+
+}
+=>Always route function must have "export" only.
+=>Function must have async keyword
+=>Function args may have request object.
+
+Supported Verbs:
+
+1.GET
+2.POST
+3.PUT
+4.PATCH
+5.DELETE
+6.HEAD
+7.OPTIONS
+
+API Arg:
+ NextRequest Object used to handle incoming client request
+ NextResponse Object used to send response to the client.
+
+Return Type always be json:
+  function name must be marked as "GET/POST"
+
+√ What is your project named? ... rest-app
+√ Would you like to use TypeScript? ... No / Yes
+√ Would you like to use ESLint? ... No / Yes
+√ Would you like to use Tailwind CSS? ... No / Yes
+√ Would you like your code inside a `src/` directory? ... No / Yes
+√ Would you like to use App Router? (recommended) ... No / Yes
+√ Would you like to use Turbopack for `next dev`? ... No / Yes
+√ Would you like to customize the import alias (`@/*` by default)? ... No / Yes
+√ What import alias would you like configured? ... @/*
+
+Use case:Simple Rest api
+
+src/app/api/greeter/route.js
+import { NextResponse } from "next/server";
+
+export async function GET(req) {
+    //resonse
+    return NextResponse.json({ message: 'Welcome to Rest api' })
+}
+
+Testing:
+http://localhost:3000/api/greeter.
+
+Patterns:
+
+1.With Mock data
+2.With External REST API
+3.With Database
+
+With Mock data:
+GET,POST,GETById
+
+src/app/api/users/route.js
+import USERS from "@/app/mock-data/users";
+import { NextResponse } from "next/server";
+
+export async function GET(req) {
+    return NextResponse.json(USERS)
+}
+
+export async function POST(req) {
+    const body = await req.json()
+    const newUser = {
+        id: USERS.length + 1,
+        ...body
+    }
+    USERS.push(newUser)
+    return NextResponse.json(newUser, { status: 201 })
+}
+
+src/app/api/users/[id]/route.js
+import USERS from "@/app/mock-data/users";
+import { NextResponse } from "next/server";
+
+export async function GET(req, { params }) {
+    const id = (await params).id
+    const user = USERS.find(tmpUser => tmpUser.id === +id)
+    if (!user) {
+        return NextResponse.json({ error: 'User Not found' }, { status: 404 })
+    }
+
+    return NextResponse.json(user)
+}
+
+export async function PUT(req, { params }) {
+    const id = (await params).id
+    const body = await req.json()
+    const userIndex = USERS.findIndex(tmpUser => tmpUser.id === +id)
+    if (userIndex === -1) {
+        return NextResponse.json({ error: 'User Not found' }, { status: 404 })
+    }
+    USERS[userIndex] = { ...USERS[userIndex], ...body }
+    return NextResponse.json(USERS[userIndex])
+}
+
+export async function DELETE(req, { params }) {
+    const id = (await params).id
+    let index = USERS.findIndex(tmpUser => tmpUser.id === id)
+    USERS.splice(index)
+    return NextResponse.json({ message: 'User has been deleted' })
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									CURD operation with External API
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+src/app/api/comments/route.js
+import { NextResponse } from "next/server"
+
+const url = `https://jsonplaceholder.typicode.com/comments`
+
+export async function GET(req) {
+    try {
+        const response = await fetch(url)
+        const comments = await response.json()
+        return NextResponse.json(comments)
+    }
+    catch (err) {
+        return NextResponse.json({ err: err }, { status: 404 })
+    }
+}
+
+export async function POST(req) {
+    const comment = await req.json()
+    //send paylod to json placehodler
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(comment)
+    })
+    const newComment = await response.json()
+    return NextResponse.json(newComment, {
+        status: 201, headers: {
+            'Content-Type': 'application/json', 'url': '/api/create'
+        }
+
+    })
+}
+src/app/api/comments/[id]/route.js
+import { NextResponse } from "next/server"
+
+//findBy Id
+const url = `https://jsonplaceholder.typicode.com/comments`
+
+export async function GET(request, { params }) {
+    try {
+        const id = (await params).id
+        const response = await fetch(`${url}/${+id}`)
+        const comment = await response.json()
+        if (comment.id) {
+            return NextResponse.json(comment)
+        }
+        return NextResponse.json({ message: `Comment for ${id} Not found` })
+    }
+    catch (err) {
+        return NextResponse.json({ err: err })
+    }
+}
+export async function PUT(request, { params }) {
+    try {
+        const id = (await params).id
+        const { name, email, body } = await request.json()
+        if (name || email || body) {
+            const response = await fetch(`${url}/${Number(id)}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, body })
+            })
+            const updatedComment = await response.json()
+            return NextResponse.json(updatedComment)
+        }
+        return NextResponse.json({ message: `No Comment is available for the ${id}` })
+    }
+    catch (err) {
+        return NextResponse.json({ err: err })
+    }
+
+}
+export async function DELETE(request, { params }) {
+    try {
+        const id = (await params).id
+        const response = await fetch(`${url}/${Number(id)}`, { method: 'DELETE' })
+        const comment = await response.json()
+        console.log(comment)
+        return NextResponse.json({ comment: 'The comment has been deleted' })
+    }
+    catch (err) {
+        return NextResponse.json({ err: err })
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								 How to integrate with UI
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+export async function fetchComments() {
+    const response = await fetch('http://localhost:3000/api/comments')
+    const comments = await response.json()
+    return comments
+}
+
+export default async function CommentsPage() {
+    const comments = await fetchComments()
+    return <div className="ml-10 mt-10">
+        {
+            comments.map(comment => {
+                return <section key={comment.id}>
+                    <h1>CommentId : {comment.id} Post Id:{comment.postId}</h1>
+                    <h3>{comment.name}</h3>
+                    <h2>{comment.email}</h2>
+                    <p>{comment.body}</p>
+                                    <hr/>
+
+                </section>
+            })
+        }
+    </div>
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Enviroment Variables
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Next.js Comes with built in support for enviroment variables, which allows you to isloate configuration from the code.
+
+Loading environment variables:
+
+process.env.VARIABLEName
+
+File names:
+
+.env
+.env.local
+.env.development
+.env.production
+
+1 .env - default for all enviroments
+	->base config  for all environment
+2 .env.local - overrides all (recommended fro secrets,machine-spefic values, ignored by git)
+	- overrides everthing, highest priority
+3.env.development - only for development 
+        -loaded only in development (next dev)
+        -good for development purpose
+4.env.production
+	-Loading only in production environment - next build && next start
+
+if you define a variable in ".env,.env.development,.env.local" , which will be taken?
+  from the env.local
+
+eg:
+
+create .env file in the project dir
+
+project-Name
+	|
+	.env
+
+
+.env:
+MESSAGE=From ENV environment
+
+Test in dev enviroment
+npm run dev
+
+Test in production environment
+
+npm run build and npm start
+
+You can see the same result.
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Rules:
+.env value can be overriden by .env.local and .env.development.
+.env.local overrides all variables defined in all all enviroments that is .env.local takes highest priority among all.
+
+eg:
+.env
+MESSAGE=From ENV environment
+GREET=Welcome env
+
+.env.local
+MYVARLOCAL=This is from Env Local
+GREET=Welcome Local
+
+.env.development
+MYVAR=I AM FROM Development
+GREET=Welcome Development
+
+.env.production
+MYVARPROD=I am from production
+GREET=Welcome Production
+
+src/app/page.js
+export default function Home() {
+
+  return <div className="m-50">
+    <h1>Environment Variables</h1>
+    <h1>.Env File : {process.env.MESSAGE}</h1>
+    <h2>.env.development : {process.env.MYVAR}</h2>
+    <h2>.env.production : {process.env.MYVARPROD}</h2>
+    <h2>.env.local : {process.env.MYVARLOCAL}</h2>
+    <h2>Greet Variable In All ENV : {process.env.GREET}</h2>
+
+  </div>
+}
+
+Task:
+URL configuration for Rest API
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
