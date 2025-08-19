@@ -1,3 +1,5 @@
+import Client from "./components/client";
+
 export default function Home() {
 
   return <div className="m-50">
@@ -7,6 +9,6 @@ export default function Home() {
     <h2>.env.production : {process.env.MYVARPROD}</h2>
     <h2>.env.local : {process.env.MYVARLOCAL}</h2>
     <h2>Greet Variable In All ENV : {process.env.GREET}</h2>
-
+    <Client/>
   </div>
 }

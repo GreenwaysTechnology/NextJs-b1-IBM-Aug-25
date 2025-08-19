@@ -2215,10 +2215,8 @@ export default function PostPage(){
 
 Task:CURD operations using apis
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-
-..................................................................................................................................................................................................................................................................
 										 Building REST APIs in Next.js  
-................................................................................................................................................................................................................................................................
+...........................................................................................................................................................................................................................................
 
 REST api can be used to write rest api which may talk to databases or external rest api or Graphql api or microservices
 
@@ -2447,7 +2445,7 @@ export async function DELETE(request, { params }) {
     }
 }
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-								 How to integrate with UI
+								 	How to integrate with UI
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 export async function fetchComments() {
@@ -2564,7 +2562,7 @@ Task:
 URL configuration for Rest API
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 										Database Integration
-...........................................................................................................................................................................................................................................................
+...........................................................................................................................................................................................................................................
 
 Next js can integrate with any data base including sql (mysql,oracle,postgresql) and no sql (mongo,neodb,redis)
 
@@ -2734,9 +2732,9 @@ Running generate... (Use --skip-generate to skip the generators)
 Testing whether database tables are created or not
 npx prisma studio
 
-............................................................................................................................................................................................
-				Prisma Client api
-............................................................................................................................................................................................
+..........................................................................................................................................................................................................................................
+										Prisma Client api
+..........................................................................................................................................................................................................................................
 Prisma Client api is used to talk database from rest apis.
 
 src/lib/prisma.js
@@ -2744,8 +2742,8 @@ src/lib/prisma.js
 import { PrismaClient } from "@prisma/client";
 const globalForPrisma = global
 export const prisma = globalForPrisma.prisma || new PrismaClient({ log: ["query"] })
-..............................................................................................................................................................										REST API with Prisma
-.....................................................................................................................................................................................
+.......................................................................................................................................................................................................................................											REST API with Prisma
+.......................................................................................................................................................................................................................................
 
 
 src/app/api/users/route.js
@@ -2756,10 +2754,247 @@ src/app/api/users/route.js
 import { prisma } from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
 
-
-export async function GET(request) {
-    //connect to prisma 
+export async function GET(req) {
     const users = await prisma.user.findMany()
     return NextResponse.json(users)
 }
+//post 
+export async function POST(req) {
+    try {
+        const user = await req.json()
+        const res = await prisma.user.create({
+            data: user
+        })
+        return NextResponse.json(res, {
+            status: 201, headers: {
+                'Content-Type': 'application/json', 'url': '/api/create'
+            }
+        })
+    }
+    catch (err) {
+        return NextResponse.json({ err: err }, { status: err.status })
+    }
+}
 
+src/app/api/users/[id]/route.js
+import { prisma } from "@/app/lib/prisma";
+import { NextResponse } from "next/server";
+
+export async function GET(req, { params }) {
+    try {
+        const id = (await params).id
+        const user = await prisma.user.findUnique({
+            where: {
+                id: id
+            }
+        })
+        if (!user) {
+            return NextResponse.json({ message: 'User not found' }, {
+                status: 404, headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        }
+        return NextResponse.json(user)
+    }
+    catch (err) {
+        return NextResponse.json({ err: err }, { status: err.status })
+    }
+}
+
+export async function PUT(req, { params }) {
+    try {
+        const id = (await params).id
+        const payload = await req.json()
+        const tmpUser = await prisma.user.findUnique({
+            where: {
+                id: id
+            }
+        })
+        if (tmpUser) {
+            const user = await prisma.user.update({
+                where: {
+                    id: id
+                },
+                data: payload
+            })
+            return NextResponse.json(user)
+
+        } else {
+            return NextResponse.json({ message: `No User found with ${id}` }, {
+                status: 404, headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        }
+    }
+    catch (err) {
+        return NextResponse.json({ err: err }, { status: err.status })
+    }
+}
+
+export async function DELETE(req, { params }) {
+    try {
+        const id = (await params).id
+        const user = await prisma.user.findUnique({
+            where: {
+                id: id
+            }
+        })
+        if (user) {
+            await prisma.user.delete({
+                where: {
+                    id: id
+                }
+            })
+            return NextResponse.json({ message: `USER with id ${id} has been successfully deleted` }, {
+                status: 201, headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        } else {
+            return NextResponse.json({ message: `No User found with ${id}` }, {
+                status: 404, headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        }
+    }
+    catch (err) {
+        return NextResponse.json({ err: err }, { status: err.status })
+    }
+}
+...........................................................................................................................................................................................................................................
+									Database Operations with User Interface
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+.env
+# IF YOU read this in client components
+NEXT_PUBLIC_USERS_URL="http://localhost:3000/api/users"
+
+src/app/users/components/users.jsx
+
+
+'use client'
+import { useState, useEffect } from 'react';
+
+export function User() {
+    const [users, setUsers] = useState([]);
+    const [formData, setFormData] = useState({ id: '', name: '', email: '', role: '' });
+    const [isEditing, setIsEditing] = useState(false);
+
+
+    useEffect(() => {
+        //if you want to read environment variables in the client , you have to add with
+        //NEXT_PUBLIC_YOURVARIABLENAME
+        fetch(process.env.NEXT_PUBLIC_USERS_URL)
+            .then((res) => res.json())
+            .then((data) => setUsers(data));
+    }, []);
+
+
+    const handleEdit = (user) => {
+        setFormData(user);
+        setIsEditing(true);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (isEditing) {
+            // Update user
+            const res = await fetch(`${process.env.NEXT_PUBLIC_USERS_URL}/${formData.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: formData.name, email: formData.email, role: formData.role }),
+            });
+
+            if (res.ok) {
+                const updatedUser = await res.json();
+                setUsers((prev) => prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)));
+            }
+            setIsEditing(false);
+        } else {
+            // Create new user
+            const res = await fetch(process.env.NEXT_PUBLIC_USERS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: formData.name, email: formData.email, role: formData.role }),
+            });
+
+            if (res.ok) {
+                const newUser = await res.json();
+                setUsers((prev) => [...prev, newUser]);
+            }
+        }
+
+        setFormData({ id: '', name: '', email: '', role: '' });
+    };
+    const handleDelete = async (id) => {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_USERS_URL}/${id}`, {
+            method: 'DELETE',
+        });
+
+        if (res.ok) {
+            setUsers((prev) => prev.filter((user) => user.id !== id));
+        }
+    };
+
+    return (
+        <div>
+            <h1 style={{ textAlign: 'center', fontSize: '35px' }}>User Management</h1>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <input
+                        type="text"
+                        placeholder="Name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        required
+                    />
+                </div>
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                />
+                <input
+                    type="text"
+                    placeholder="Role"
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    required
+                />
+                <button type="submit">{isEditing ? 'Update User' : 'Add User'}</button>
+            </form>
+            <ul>
+                {users.map((user) => (
+                    <li key={user.id}>
+                        <div className="user-details">
+                            <span>
+                                {user.name} ({user.email}) - {user.role}
+                            </span>
+                        </div>
+                        <div className="actions">
+                            <button onClick={() => handleEdit(user)}>Edit</button>
+                            <button onClick={() => handleDelete(user.id)}>Delete</button>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+
+        </div>
+    );
+}
+
+src/app/user/page.js
+import { User } from "./components/users";
+
+export default function UsersPage() {
+    return <div>
+        <User />
+    </div>
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
