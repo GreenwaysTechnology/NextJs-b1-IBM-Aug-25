@@ -2998,11 +2998,9 @@ export default function UsersPage() {
     </div>
 }
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-									     Server actions 
-.................................................................................................................................................................................................................................................................
-...........................................................................................................................................................................................
-				 				Server actions
-..........................................................................................................................................................................................
+.				 						Server actions
+..........................................................................................................................................................................................................................................
+
 	Server Actions are a feature in Next.js 15 that allow you to perform server-side operations directly from the client without creating an API route or an explicit handler.
 
  This feature simplifies data fetching, form submissions, or other server-side logic by integrating it seamlessly into your component tree.
@@ -3033,12 +3031,9 @@ Perfectly fits into Next.js's App Router system for organizing server and client
 Getting coding:
 
 'use server'
-
 export async function save(data){
- 
-  //logic
-  
-}
+   //logic
+ }
 npx create-next-app@latest
 √ What is your project named? ... server-actions
 √ Would you like to use TypeScript? ... No / Yes
@@ -3108,7 +3103,7 @@ export default async function UserPage(){
 Output:
 {"success":true,"message":"Data Saved Successfully"}
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-										Passing data from client Component to Server Component
+										Passing data from client Component to Server actions
 												Client Form to Server Actions
 ***********************************************************************************************************************************************************
 
@@ -3160,7 +3155,7 @@ export default function UserForm() {
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 									 	Server Side Redirection
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-   To redirect after a form submission in Next.js 15 with Server Actions, you can use the redirect function from the Next.js router or perform a client-side redirect after the form submission is complete.
+ 	  To redirect after a form submission in Next.js 15 with Server Actions, you can use the redirect function from the Next.js router or perform a client-side redirect after the form submission is complete.
 
    To redirect after a form submission in Next.js 15 with Server Actions, you can use the redirect function from the Next.js router or perform a client-side redirect after the form submission is complete.
 
@@ -3260,7 +3255,7 @@ Dot.net:
 <form method="post" action="users.aspx"></form>
 
 Next.js
-<form  action=serveraction></form>
+<form  action={serveraction}></form>
 
 src/app/user/components/userForm.jsx
 
@@ -3377,6 +3372,21 @@ Task:
 
 Initalize the prisma with sqlite : Follow the previous steps
 
+schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id    Int     @id @default(autoincrement())
+  name  String
+  email String  @unique
+}
+
 
 src/app/actions/userAction.js
 
@@ -3416,7 +3426,7 @@ import { useState,useEffect } from "react";
 
 export default function HomePage() {
     const [users, setUsers] = useState([]);
-    const [editUser, setEditUser] = useState(null); // store user being edited
+    const [editUser, setEditUser] = useState(null);
     const [form, setForm] = useState({ name: "", email: "" });
 
     useEffect(() => {
@@ -3551,6 +3561,209 @@ export default function HomePage() {
         </div>
     );
 }
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+					  			Advanced Routing - Dynamic Routes
+			 	  				    "Catch All Segement Routing"
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Dynamic Routing:
+
+/todos/1
+  
+todos 
+ |
+   page.js
+ [id]
+    |
+    page.js
+
+Here we are displaying different todo's page - todo's details page
+
+/shop ----> page.js
+
+/shop/electronics 
+/shop/food
+/shop/machinery
+/shop/medicines
+/shop/?     - cloths
+Here i want to display different category of products not same product details
+
+shop
+ |
+ [electronics] -page.js
+   |
+   page.js
+ |
+ [food] -page.js
+|
+ [machinery]-   page.js
+|
+ [medicines]-   page.js
+|
+[?] -page.js
+
+  					 What if dynamic routes are not predefined in advance...
+                      	   	This where "catchAll dynamic routing segment" comes into picture
 
 
+The "catchAll" segment is used to capture dynamic route segments that can handle any number of path segments in the URL. This is useful for routing in scenarios where the exact number of path segments is uncertain.
 
+Example: Blog Application
+
+Let's assume you are building a blog application, and you want to allow access to various types of blog posts, such as categories, authors, and specific post titles.
+
+Folder Structure:
+
+With Catch All:
+
+shop
+  |
+  page.js
+ [...slug]
+   |
+  page.js
+
+
+√ What is your project named? ... catchall-routing
+√ Would you like to use TypeScript? ... No / Yes
+√ Which linter would you like to use? » None
+√ Would you like to use Tailwind CSS? ... No / Yes
+√ Would you like your code inside a `src/` directory? ... No / Yes
+√ Would you like to use App Router? (recommended) ... No / Yes
+√ Would you like to use Turbopack? (recommended) ... No / Yes
+√ Would you like to customize the import alias (`@/*` by default)? ... No / Yes
+√ What import alias would you like configured? ... @/*
+
+
+/app/shop/page.js
+export default function Shop(){
+    return <h1>Shop Page</h1>
+}
+
+src/shop/[...slug]/page.js
+
+export default async function ShopCateory({ params }) {
+    const values = await params
+    return <h1>Shop Page -Category {JSON.stringify(values)}</h1>
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								Display page based on Data
+***********************************************************************************************************************************************************
+src/app/docs/page.js
+
+export default function DocsHome(){
+    return <h1>
+        Docs Home Page
+    </h1>
+}
+
+src/app/docs/[...slug]/page.js
+import { notFound } from "next/navigation"
+
+const docs = {
+    //path: path Content
+    "getting-started": "Heres How to get started",
+    "advanced": "This is advanced Guide"
+}
+
+export default async function DocsDetailsPage({ params }) {
+    const slug = (await params).slug
+
+    const path = slug.join("/")
+    const content = docs[path]
+    if (!content) {
+        notFound()
+    }
+    return <div className="p-6">
+        <h1>Docs :{path}</h1>
+        <p>{content}</p>
+    </div>
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+					     		Advanced Routing - Dynamic Routes
+		   			    		"Optional Catch All Segement Routing"
+................................................................................................................................................................................................................................................................
+With Catch All:
+
+shop
+  |
+  page.js
+ [...slug]
+   |
+  page.js
+
+/shop/tops
+/shop/tops/tshirt
+/shop/dress/mens/shirt
+
+With Catch All:
+
+shop
+  |
+  page.js
+ [...slug]
+   |
+  page.js
+
+/shop/tops
+/shop/tops/tshirt
+/shop/dress/mens/shirt
+
+
+In CatchAll segement routing,the root folder has page.js, without that page.js what will happen?
+  You will get 404 - Page Not found
+
+http://localhost:3000/shop
+
+ There would be use case, i dont want page.js inside /shop 
+
+ Thats where we use "Optional CatchAll" segement is used
+
+With Optional CatchAll Segment:
+
+shop
+  |
+ [[...slug]] --optional CatchAll Segement...
+   |
+   page.js
+
+√ What is your project named? ... optionalcatchall-routing
+√ Would you like to use TypeScript? ... No / Yes
+√ Which linter would you like to use? » None
+√ Would you like to use Tailwind CSS? ... No / Yes
+√ Would you like your code inside a `src/` directory? ... No / Yes
+√ Would you like to use App Router? (recommended) ... No / Yes
+√ Would you like to use Turbopack? (recommended) ... No / Yes
+√ Would you like to customize the import alias (`@/*` by default)? ... No / Yes
+√ What import alias would you like configured? ... @/*
+
+src/shop/[[...slug]]/page.js
+
+export default async function ShopCateory({ params }) {
+    const values = await params
+    return <h1>Shop Page -Category {JSON.stringify(values)}</h1>
+}
+
+src/docs/[[...slug]]/page.js
+import { notFound } from "next/navigation"
+
+const docs = {
+    //path: path Content
+    "docs" : "Welcome to Docs Home Page",
+    "getting-started": "Heres How to get started",
+    "advanced": "This is advanced Guide"
+}
+
+export default async function DocsDetailsPage({ params }) {
+    const slug = (await params).slug
+
+    const path = slug ? slug.join("/") : "docs"
+    const content = docs[path]
+    if (!content) {
+        notFound()
+    }
+    return <div className="p-6">
+        <h1>Docs :{path}</h1>
+        <p>{content}</p>
+    </div>
+}
