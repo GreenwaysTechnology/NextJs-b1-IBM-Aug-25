@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 async function getUser(id) {
-  const res = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`, {
+  const res = await fetch(`https://jsonplaceholder.uuu.com/users/${id}`, {
     cache: "no-store",
   });
   if (res.status === 404) {
