@@ -5426,7 +5426,111 @@ export default async function TimeCachePage() {
     </>
 }
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-										ISR
+									.............................................................................................................................................................................................................
+									ISR
+						SSG + Caching + Revalidation = ISR
+				   		     ISR- Incremental Static Rendering
+............................................................................................................................................................................................................
+
+ISR  =SSG +Caching + Revalidation.
+
+SSG:
+  -Building pages during build time.
+  -Incase if page uses data that means fetching data from apis,that data only used    during build phase
+  -page is built and cache it 
+  
+Revalidation:
+  -When we want fresh data for the page
+  -during revalidation, cache is cleared so that the page also need to be    rerendered..
+
+"Incrementatal static rendering is nothing but create pages during build time and cache it, if any data change for the particular page, re render that page, after clearing the cache either by using time based or on demand or both"
+
+ISR = SSR + Staic Renderning + Dynamic Rendering + SSG +request time
+
+
+How to implement ISR?
+
+1.Enable Cache
+2.Select Revalidation pattern
+3.override generateStaticParams method where you have to generate page, after build time, the page is cached.
+4.revalidate the pre build page, using revalidation pattern so that the page is rebuilt.
+
+During SSG, the pages are cached by default.
+
+Once the app is gone to the production, after that if you want to rebuild page you can apply revalidation process.
+
+ISR = SSG + Revalidation.
+
+Eg:
+export async function getTime() {
+    const url = 'https://www.timeapi.io/api/Time/current/zone?timeZone=Asia/Kolkata'
+    const response = await fetch(url, {
+        cache: 'force-cache', next: {
+            tags: ['timerTag']
+        }
+    })
+    const data = await response.json()
+    return data
+}
+
+export default async function TimeCachePage() {
+    const data = await getTime()
+    return <>
+        <h1 className="font-bold">Time Now: {new Date(data.dateTime).toLocaleTimeString()}</h1>
+    </>
+}
+export async function generateStaticParams() {
+    return [{
+        city: 'Kolkata'
+    }]
+}
+
+Testing:
+pm run build
+
+> caching-isr@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.10
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+ ✓ Linting and checking validity of types
+ ✓ Collecting page data
+ ✓ Generating static pages (7/7)
+ ✓ Collecting build traces
+ ✓ Finalizing page optimization
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    5.25 kB        92.3 kB
+├ ○ /_not-found                          871 B          87.9 kB
+├ ƒ /api/revalidate                      0 B                0 B
+└ ● /timecache/[city]                    137 B          87.2 kB
+    └ /timecache/Kolkata
++ First Load JS shared by all            87.1 kB
+  ├ chunks/23-8d0b25cd7d597713.js        31.6 kB
+  ├ chunks/fd9d1056-2821b0f0cabcd8bd.js  53.6 kB
+  └ other shared chunks (total)          1.86 kB
+
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses getStaticProps)
+ƒ  (Dynamic)  server-rendered on demand
+
+
+nextjs\caching-isr>npm start
+
+> caching-isr@0.1.0 start
+> next start
+
+  ▲ Next.js 14.2.10
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 418ms
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Authentication &&  Authorization using Session Tracking
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 
 

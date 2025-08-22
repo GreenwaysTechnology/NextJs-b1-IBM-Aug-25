@@ -1,3 +1,6 @@
+
+export const fetchCache = 'default-cache'
+
 export async function getTime() {
     const url = 'https://www.timeapi.io/api/Time/current/zone?timeZone=Asia/Kolkata'
     const response = await fetch(url, {
@@ -14,9 +17,4 @@ export default async function TimeCachePage() {
     return <>
         <h1 className="font-bold">Time Now: {new Date(data.dateTime).toLocaleTimeString()}</h1>
     </>
-}
-export async function generateStaticParams() {
-    return [{
-        city: 'Kolkata'
-    }]
 }
